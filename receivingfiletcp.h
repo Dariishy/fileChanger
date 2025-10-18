@@ -47,12 +47,12 @@ private:
     qint64 receivedFileSize;
     QFile *currentFile;
 
-    QString fileMask;
+    //QString fileMask;
     QString savePath;
     int saveMode;
 
     QString getUniqueFileName(const QString &filePath);
-    bool checkFileMask(const QString &fileName);
+    //bool checkFileMask(const QString &fileName);
     void skipFileData();
 };
 

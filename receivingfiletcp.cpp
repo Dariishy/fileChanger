@@ -1,7 +1,6 @@
 #include "receivingfiletcp.h"
 #include <QDebug>
 #include <QDir>
-#include <QRegularExpression>
 
 ReceivingFileTCP::ReceivingFileTCP(QObject *parent)
     : QObject(parent)
@@ -62,11 +61,6 @@ bool ReceivingFileTCP::isConnected() const//Статус подключения
     return socket->state() == QAbstractSocket::ConnectedState;
 }
 
-void ReceivingFileTCP::setFileMask(const QString &mask)//Изменение маски файлов
-{
-    fileMask = mask.trimmed();
-}
-
 void ReceivingFileTCP::setSavePath(const QString &path)//Изменение пути для сохранения
 {
     savePath = path;
@@ -105,12 +99,12 @@ void ReceivingFileTCP::onReadyRead()//Парсинг
             in >> currentFileName >> expectedFileSize;
 
             // Проверка маски файла
-            if(!fileMask.isEmpty() && !checkFileMask(currentFileName))
+            /*if(!fileMask.isEmpty() && !checkFileMask(currentFileName))
             {
                 qDebug() << "Имя файла" << currentFileName << "не соответствует маске" << fileMask;
                 skipFileData();
                 continue;
-            }
+            }*/
 
             // Создаем путь к файлу
             QString fullPath = savePath.isEmpty() ? currentFileName : savePath + "/" + currentFileName;
@@ -266,12 +260,6 @@ QString ReceivingFileTCP::getUniqueFileName(const QString &filePath)//Модиф
         count++;
     }
     return newFilePath;
-}
-
-bool ReceivingFileTCP::checkFileMask(const QString &fileName)//Проверка соответствия маски
-{
-    QRegularExpression regex(fileMask, QRegularExpression::CaseInsensitiveOption);
-    return regex.match(fileName).hasMatch();
 }
 
 void ReceivingFileTCP::skipFileData()//Пропуск файла

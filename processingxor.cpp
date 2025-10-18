@@ -1,5 +1,6 @@
 #include "processingxor.h"
 #include <QDebug>
+#include <QRegularExpression>
 
 ProcessingXOR::ProcessingXOR(QObject *parent)
     : QObject(parent)
@@ -31,6 +32,16 @@ void ProcessingXOR::processFile(const QString &inputPath, const QString &outputP
     if (xorKeys.size() != 8)
     {
         emit error("Размер ключа должен быть 8 байт");
+        return;
+    }
+
+    // Проверка маски файла
+    if(!fileMask.isEmpty() && !checkFileMask(inputFile.fileName()))
+    {
+        qDebug() << "Имя файла" << inputFile.fileName() << "не соответствует маске" << fileMask;
+        emit progressChanged(100);
+        inputFile.remove();
+        emit finished("-");
         return;
     }
 
@@ -179,8 +190,16 @@ void ProcessingXOR::cancelProcessing()//Остановка обработки
 
 }
 
+bool ProcessingXOR::checkFileMask(const QString &fileName)//Проверка соответствия маски
+{
+    QRegularExpression regex(fileMask, QRegularExpression::CaseInsensitiveOption);
+    return regex.match(fileName).hasMatch();
+}
 
-
+void ProcessingXOR::setFileMask(const QString &mask)//Изменение маски файлов
+{
+    fileMask = mask.trimmed();
+}
 
 
 

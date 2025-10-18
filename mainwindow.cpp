@@ -70,16 +70,12 @@ MainWindow::MainWindow(QWidget *parent)
                 startChanger.setText("Остановка...");
                 startChanger.setEnabled(false);
                 timer->stop();
-                //if (processingXor && xorThread->isRunning())
-                //{
-                    //QMetaObject::invokeMethod(processingXor, "cancelProcessing", Qt::QueuedConnection);
                 QTimer::singleShot(0, this, [this]()
                 {
                     startChanger.setText("Старт");
                     startChanger.setEnabled(true);
                     enebledOrDisabledGUI(true);
                 });
-                //}
 
             }
         }
@@ -101,24 +97,20 @@ MainWindow::MainWindow(QWidget *parent)
             {
                 startChanger.setText("Остановка...");
                 startChanger.setEnabled(false);
-                //if (processingXor && xorThread->isRunning())
-                //{
-                    //QMetaObject::invokeMethod(processingXor, "cancelProcessing", Qt::QueuedConnection);
                 QTimer::singleShot(100, this, [this]()
                 {
-                    //setupXOR();
                     stopAllOperations();
                     startChanger.setText("Старт");
                     startChanger.setEnabled(true);
                     enebledOrDisabledGUI(true);
                 });
-                //}
 
             }
         }
     });
 
     setupFileReceiver();
+
     setupXOR();
 
 }
@@ -325,17 +317,16 @@ void MainWindow::setupFileReceiver()
     fileReceiver = new ReceivingFileTCP(this);
 
     //Параметры обработки
-    connect(&maskFile, &QLineEdit::textChanged, fileReceiver, &ReceivingFileTCP::setFileMask);
+    connect(&maskFile, &QLineEdit::textChanged, processingXor, &ProcessingXOR::setFileMask);
     connect(&savePath, &QLineEdit::textChanged, fileReceiver, &ReceivingFileTCP::setSavePath);
     connect(&saveMode, &QComboBox::currentIndexChanged, fileReceiver, &ReceivingFileTCP::setSaveMode);
 
-    //Сигналы от сетевых сокетов
     connect(fileReceiver, &ReceivingFileTCP::fileReceived, this, &MainWindow::onFileReceived);
     connect(fileReceiver, &ReceivingFileTCP::progressChanged, this, &MainWindow::progressChanged);
     connect(fileReceiver, &ReceivingFileTCP::errorOccurred, this, &MainWindow::onReceiverError);
 
     //Начальные значения
-    fileReceiver->setFileMask(maskFile.text());
+    //fileReceiver->setFileMask(maskFile.text());
     fileReceiver->setSavePath(savePath.text());
     fileReceiver->setSaveMode(saveMode.currentIndex());
 
@@ -363,7 +354,6 @@ void MainWindow::onFileReceived(const QString &filePath)
 void MainWindow::onReceiverError(const QString &errorMessage)
 {
     qDebug() << "Ошибка приемника файлов:" << errorMessage;
-    // Можно добавить отображение ошибки в интерфейсе
 }
 
 void MainWindow::sendFileRequest()
@@ -441,7 +431,7 @@ void MainWindow::setupXOR()
     //Ошибка обработки
     connect(processingXor, &ProcessingXOR::error,this, &MainWindow::onXORError, Qt::QueuedConnection);
     //Завершение потока
-     connect(xorThread, &QThread::finished, processingXor, &QObject::deleteLater);
+    connect(xorThread, &QThread::finished, processingXor, &QObject::deleteLater);
     xorThread->start();
 }
 
@@ -453,12 +443,14 @@ void MainWindow::startXORProcessing(const QString &inputPath, const QString &out
         qDebug() << "Обработка уже выполняется, пропускаем запрос";
         return;
     }
+
     if(!processingXor || !xorThread || !xorThread->isRunning())
     {
         qDebug() << "XOR процессор не инициализирован, переинициализируем";
         setupXOR();
         QThread::msleep(50);
     }
+    processingXor->setFileMask(maskFile.text());
 
     if(!processingXor || !xorThread || !xorThread->isRunning())
     {

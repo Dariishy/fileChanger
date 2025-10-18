@@ -12,6 +12,7 @@ class ProcessingXOR : public QObject
 public:
     explicit ProcessingXOR(QObject *parent = nullptr);
     ~ProcessingXOR();
+    void setFileMask(const QString &mask);
 public slots:
     void processFile(const QString &inputPath, const QString &outputPath, const QVector<unsigned char> &xorKeys, bool deleteOriginal);
     void cancelProcessing();
@@ -23,7 +24,9 @@ signals:
 
 private:
     bool processChunk(QFile &inputFile, QFile &outputFile, const QVector<unsigned char> &xorKeys, qint64 totalSize);
-    bool m_cancelRequested;
+    bool checkFileMask(const QString &fileName);
+    QString fileMask;
+
 };
 
 #endif // PROCESSINGXOR_H
